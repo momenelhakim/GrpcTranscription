@@ -1,0 +1,31 @@
+﻿syntax = "proto3";
+
+package transcription;
+
+service TranscriptionService {
+  // Bi-directional streaming for audio transcription
+  rpc Transcribe (stream AudioChunk) returns (stream TranscriptionResponse);
+}
+
+message AudioChunk {
+  bytes audio_data = 1;  // Audio chunk in bytes
+  optional string audio_format = 2; // Audio Format Default -> wav
+  optional uint32 audio_sr = 3; // audio sampling rate Default -> 16000
+  optional uint32 sample_width = 4; // audio sample width Default -> 2
+  optional uint32 channels =5; // audio channels Default -> 1
+  string session_id = 6; // Unique session identifier
+  optional string tgt_lang = 7;   // Target language
+  optional string output_format = 8; // Desired output_format  Default -> Text
+  optional string task_type = 9; // Transcript or Translate Default -> Transcript
+  bool auto_silence_detection = 10; // detect the silence for calls
+  uint32 silence_threshold=11; // the silence threshold in miliseconds
+  bool is_last_chunk=12; // is last_chunk
+}
+
+message TranscriptionResponse {
+  string session_id = 1; // Session identifier
+  string transcript = 2; // Transcript of the audio chunk
+  bool long_silence=3; // silence over threshold detected
+}
+
+
