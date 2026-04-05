@@ -1,4 +1,4 @@
-﻿syntax = "proto3";
+syntax = "proto3";
 
 package transcription;
 
@@ -8,24 +8,26 @@ service TranscriptionService {
 }
 
 message AudioChunk {
-  bytes audio_data = 1;  // Audio chunk in bytes
-  optional string audio_format = 2; // Audio Format Default -> wav
-  optional uint32 audio_sr = 3; // audio sampling rate Default -> 16000
-  optional uint32 sample_width = 4; // audio sample width Default -> 2
-  optional uint32 channels =5; // audio channels Default -> 1
-  string session_id = 6; // Unique session identifier
-  optional string tgt_lang = 7;   // Target language
-  optional string output_format = 8; // Desired output_format  Default -> Text
-  optional string task_type = 9; // Transcript or Translate Default -> Transcript
-  bool auto_silence_detection = 10; // detect the silence for calls
-  uint32 silence_threshold=11; // the silence threshold in miliseconds
-  bool is_last_chunk=12; // is last_chunk
+  bytes audio_data = 1;              // Raw PCM or WAV bytes
+  optional string audio_format = 2;  // "wav" or "raw" (default: auto-detect)
+  optional uint32 audio_sr = 3;      // Sample rate in Hz (default: 16000)
+  optional uint32 sample_width = 4;  // Bytes per sample (default: 2 = 16-bit)
+  optional uint32 channels = 5;      // Audio channels (default: 1 = mono)
+  string session_id = 6;             // Unique session UUID (client-generated)
+  optional string tgt_lang = 7;      // Language code: "ar", "en", "zh", etc.
+  optional string output_format = 8; // Reserved (unused)
+  optional string task_type = 9;     // Reserved (unused)
+  bool auto_silence_detection = 10;  // true = VAD mode, false = timed flush
+  uint32 silence_threshold = 11;     // Silence threshold in ms (default: 500)
+  bool is_last_chunk = 12;           // Set true on final chunk to end session
+  optional string model_id = 13;     // Model: "qwen-asr", "conformer-ar", "whisper"
+  optional string prompt = 14;       // Context prompt (code-switching hints, etc.)
 }
 
 message TranscriptionResponse {
-  string session_id = 1; // Session identifier
-  string transcript = 2; // Transcript of the audio chunk
-  bool long_silence=3; // silence over threshold detected
+  string session_id = 1;    // Echo of session ID
+  string transcript = 2;    // Partial text for partials; full assembled text when is_final=true
+  bool long_silence = 3;    // True when silence detected (VAD mode only)
+  string model_id = 4;      // Which model produced this result
+  bool is_final = 5;        // True on the last response. Stream closes after this.
 }
-
-
